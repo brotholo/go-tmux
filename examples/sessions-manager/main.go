@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	tmux "github.com/jubnzv/go-tmux"
+	tmux "github.com/brotholo/go-tmux"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 )

@@ -9,7 +9,7 @@ package main
 import (
 	"fmt"
 
-	gotmux "github.com/jubnzv/go-tmux"
+	gotmux "github.com/brotholo/go-tmux"
 )
 
 func main() {
