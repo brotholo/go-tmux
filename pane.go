@@ -28,9 +28,9 @@ type Pane struct {
 // tmux command keys (see tmux(1) manpage):
 // list-panes [-as] [-F format] [-t target]
 //
-// * `-a`: target is ignored and all panes on the server are listed
-// * `-s`: target is a session. If neither is given, target is a window (or
-//   the current window).
+//   - `-a`: target is ignored and all panes on the server are listed
+//   - `-s`: target is a session. If neither is given, target is a window (or
+//     the current window).
 func ListPanes(args []string) ([]Pane, error) {
 	format := strings.Join([]string{
 		"#{session_id}",
@@ -108,6 +108,21 @@ func (p *Pane) GetCurrentPath() (string, error) {
 
 	return out, nil
 }
+func (p *Pane) GetCurrentSize() (string, error) {
+	//  tmux display-message -p '#{pane_width}x#{pane_height}'
+	args := []string{
+		"display-message",
+		"-P", "-F", "#{pane_width}x#{pane_height}"}
+	out, _, err := RunCmd(args)
+	if err != nil {
+		return "", err
+	}
+
+	// Remove trailing CR
+	out = out[:len(out)-1]
+
+	return out, nil
+}
 
 func (p *Pane) Capture() (string, error) {
 	args := []string{
@@ -130,7 +145,7 @@ func (p *Pane) Capture() (string, error) {
 
 // RunCommand runs a command in the pane.
 func (p *Pane) RunCommand(command string) error {
-	args := []string {
+	args := []string{
 		"send-keys",
 		"-t",
 		fmt.Sprintf("%s:%d.%d", p.SessionName, p.WindowId, p.ID),
@@ -143,4 +158,3 @@ func (p *Pane) RunCommand(command string) error {
 	}
 	return nil
 }
-
