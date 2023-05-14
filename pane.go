@@ -108,27 +108,79 @@ func (p *Pane) GetCurrentPath() (string, error) {
 
 	return out, nil
 }
-func (p *Pane) GetCurrentSize() (string, error) {
+func (p *Pane) SetFocus() error {
+	args := []string{
+		"select-window",
+		"-t",
+		fmt.Sprintf("%s:%d", p.SessionName, p.WindowId)}
+	//  fmt.Sprintf("%s", p.WindowName)}
+	//  p.WindowName}
+	_, _, err := RunCmd(args)
+	//  fmt.Println("SET FOCUS DIO", p.WindowName,
+	args = []string{
+		"select-pane",
+		"-t",
+		fmt.Sprintf("%s:%d.%d", p.SessionName, p.WindowId, p.ID)}
+	//  fmt.Sprintf("%s", p.WindowName)}
+	//  p.WindowName}
+	_, _, err = RunCmd(args)
+	return err
+}
+
+func (p *Pane) MovePane(pane_target *Pane, focus bool) error {
+	args := []string{
+		"join-pane",
+		"-s",
+		fmt.Sprintf("%s:%d.%d", p.SessionName, p.WindowId, p.ID),
+		"-t",
+		fmt.Sprintf("%s:%d", pane_target.SessionName, pane_target.WindowId)}
+	if !focus {
+		args = append(args, "-d")
+	}
+	//  fmt.Sprintf("%s", p.WindowName)}
+	//  p.WindowName}
+	fmt.Println("MOVE PANE FROM ",
+		fmt.Sprintf("%s:%d.%d", p.SessionName, p.WindowId, p.ID),
+		"TO",
+		fmt.Sprintf("%s:%d", pane_target.SessionName, pane_target.WindowId))
+	_, _, err := RunCmd(args)
+	p.WindowName = pane_target.WindowName
+	p.WindowId = pane_target.WindowId
+	//  fmt.Println("SET FOCUS DIO", p.WindowName, out, args, err)
+	return err
+}
+
+func (p *Pane) GetCurrentSize() (int, int, error) {
 	//  tmux display-message -p '#{pane_width}x#{pane_height}'
 	args := []string{
 		"display-message",
-		"-P", "-F", "#{pane_width}x#{pane_height}"}
+		//  "-P", "-F", "#{pane_width}x#{pane_height}"}
+		"-p",
+		"-t",
+		fmt.Sprintf("%s:%d.%d", p.SessionName, p.WindowId, p.ID),
+		"-F",
+		"#{pane_width}x#{pane_height}"}
 	out, _, err := RunCmd(args)
 	if err != nil {
-		return "", err
+		return 0, 0, err
 	}
 
 	// Remove trailing CR
 	out = out[:len(out)-1]
+	data := strings.SplitN(out, "x", 2)
+	w, _ := strconv.Atoi(data[0])
+	h, _ := strconv.Atoi(data[1])
 
-	return out, nil
+	//  return out, nil
+	return w, h, nil
 }
 
 func (p *Pane) Capture() (string, error) {
 	args := []string{
 		"capture-pane",
 		"-t",
-		fmt.Sprintf("%%%d", p.ID),
+		//  fmt.Sprintf("%%%d", p.ID),
+		fmt.Sprintf("%s:%d.%d", p.SessionName, p.WindowId, p.ID),
 		"-p",
 	}
 
